@@ -28,3 +28,10 @@ root.render(
     </QueryClientProvider>
   </React.StrictMode>,
 );
+
+// Register offline service worker (non-blocking, safe for dev HMR: network-first).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js").catch(() => {});
+  });
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=VAANI Kiosk (Chromium fullscreen)
+After=graphical.target network-online.target vaani-backend.service vaani-frontend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Environment=DISPLAY=:0
+Environment=VAANI_URL=http://localhost:3000/app
+ExecStart=/home/pi/vaani/deploy/rpi/start-kiosk.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=graphical.target

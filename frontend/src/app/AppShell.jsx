@@ -60,6 +60,12 @@ export default function AppShell() {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
+        {/* Offline banner */}
+        {!online && (
+          <div className="w-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs text-center py-2 border-b border-amber-500/25" data-testid="offline-banner">
+            {t(lang, "offline")} — showing saved schemes & conversations. New answers need internet.
+          </div>
+        )}
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-5 md:px-8 h-16 border-b border-border glass">
           <div className="flex items-center gap-3 md:hidden">

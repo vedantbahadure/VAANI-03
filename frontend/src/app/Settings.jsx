@@ -1,17 +1,22 @@
 import React, { useState } from "react";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor, Volume2, Cpu, Sparkles } from "lucide-react";
+import { Sun, Moon, Monitor, Volume2, Cpu, Sparkles, Music, Mic } from "lucide-react";
 import { useLang, useMode } from "../lib/contexts";
 import { t, LANGS } from "../lib/i18n";
 import { Switch } from "../components/ui/switch";
+import { sfx } from "../lib/sound";
 
 export default function Settings() {
   const { lang, setLang } = useLang();
   const { mode, setMode } = useMode();
   const { theme, setTheme } = useTheme();
   const [autoVoice, setAutoVoice] = useState(localStorage.getItem("vaani-voice-reply") === "1");
+  const [sfxOn, setSfxOn] = useState(sfx.isEnabled());
+  const [wakeOn, setWakeOn] = useState(localStorage.getItem("vaani-wakeword") === "1");
 
   const toggleVoice = (v) => { setAutoVoice(v); localStorage.setItem("vaani-voice-reply", v ? "1" : "0"); };
+  const toggleSfx = (v) => { setSfxOn(v); sfx.setEnabled(v); if (v) sfx.success(); };
+  const toggleWake = (v) => { setWakeOn(v); localStorage.setItem("vaani-wakeword", v ? "1" : "0"); };
 
   return (
     <div className="px-5 md:px-10 py-8 max-w-2xl mx-auto">
@@ -42,10 +47,20 @@ export default function Settings() {
         </Section>
 
         <Section title={t(lang, "voice")}>
-          <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border bg-card/40">
-            <span className="flex items-center gap-3 text-sm"><Volume2 className="w-5 h-5 text-primary" />{t(lang, "voice_reply")}</span>
-            <Switch checked={autoVoice} onCheckedChange={toggleVoice} data-testid="auto-voice-switch" />
-          </label>
+          <div className="space-y-2">
+            <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border bg-card/40">
+              <span className="flex items-center gap-3 text-sm"><Volume2 className="w-5 h-5 text-primary" />{t(lang, "voice_reply")}</span>
+              <Switch checked={autoVoice} onCheckedChange={toggleVoice} data-testid="auto-voice-switch" />
+            </label>
+            <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border bg-card/40">
+              <span className="flex items-center gap-3 text-sm"><Mic className="w-5 h-5 text-primary" />{lang === "hi" ? "वेक-वर्ड ‘वाणी’" : lang === "mr" ? "वेक-वर्ड ‘वाणी’" : "Wake word “VAANI”"}</span>
+              <Switch checked={wakeOn} onCheckedChange={toggleWake} data-testid="wakeword-switch" />
+            </label>
+            <label className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border bg-card/40">
+              <span className="flex items-center gap-3 text-sm"><Music className="w-5 h-5 text-primary" />{lang === "hi" ? "ध्वनि प्रभाव" : lang === "mr" ? "ध्वनी प्रभाव" : "Sound effects"}</span>
+              <Switch checked={sfxOn} onCheckedChange={toggleSfx} data-testid="sfx-switch" />
+            </label>
+          </div>
         </Section>
 
         <Section title={t(lang, "mode")}>

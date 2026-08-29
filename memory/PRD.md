@@ -63,3 +63,22 @@ Multilingual voice-first. Premium calm design. Hardware abstraction. Offline-fri
 
 ## Next tasks
 Gather user feedback on the demo; prioritize offline PWA cache and voice-highlight if pursuing SIH polish.
+
+## Competition Edition (2026-06)
+Additive build on frozen v1.0 — no redesign, no regressions. All P1/P2 delivered; P3 polish applied.
+- [x] True offline mode (service worker: shell + knowledge/FAQs/conversations cache; offline banner)
+- [x] Raspberry Pi Kiosk Mode (deploy/rpi: fullscreen Chromium, boot auto-launch, watchdog, systemd + memory caps)
+- [x] Word-by-word TTS highlighting (useSpeech + word-indexed RichText) in Chat & Document Q&A
+- [x] Wake-word "VAANI" (useWakeWord, Web Speech, Settings toggle) — caveat: needs connectivity on Chromium
+- [x] Listening orb + real-time mic waveform (AnalyserNode)
+- [x] One-touch Demo Mode (multilingual scripted autopilot with Stop)
+- [x] "Am I Eligible?" guided wizard → grounded cited verdict
+- [x] Voice-guided document reading with synced highlight
+- [x] Multilingual translation (per-message + POST /api/translate) with loading state
+- [x] Context-aware quick actions (deduplicated)
+- [x] Barge-in (mic/send/wake-word stops TTS)
+- [x] Sound effects (toggle), transitions, loaders, Device Mode
+- [x] Deliverables: FEATURE_CHECKLIST, PERFORMANCE_REPORT, RPI_DEPLOYMENT, DEMO_SCRIPT, RELEASE_SUMMARY
+- Verification: backend 34/34 pytest; frontend all new+regression flows pass (fixed a ship-blocking
+  hook-ordering crash in Chat.jsx caught in testing). Production build 2.1MB (3D lazy on landing only).
+- Caveats: wake-word needs connectivity on Chromium (Vosk/Porcupine seam ready); translation ~15-20s.

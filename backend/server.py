@@ -167,6 +167,26 @@ class SpeakRequest(BaseModel):
     voice: str = "alloy"
 
 
+class TranslateRequest(BaseModel):
+    text: str
+    target: str = "en"
+
+
+@api.post("/translate")
+async def translate(req: TranslateRequest):
+    if not req.text.strip():
+        raise ValidationError("Text cannot be empty.")
+    target = SUPPORTED_LANGS.get(req.target, "English")
+    from ai_adapters import get_llm
+    system = (f"You are a precise translator. Translate the user's text into {target}. "
+              "Preserve meaning, numbers and scheme names. Output ONLY the translation, nothing else.")
+    try:
+        out = await get_llm().complete(system, req.text)
+    except Exception as e:
+        raise UpstreamError(f"Translation failed: {str(e)[:200]}")
+    return {"text": (out or "").strip(), "target": req.target}
+
+
 @api.post("/voice/speak")
 async def speak(req: SpeakRequest):
     if not req.text.strip():

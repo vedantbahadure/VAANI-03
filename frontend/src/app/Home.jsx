@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, MessageCircle } from "lucide-react";
+import { ArrowRight, MessageCircle, ShieldCheck } from "lucide-react";
 import { Orb } from "../components/Orb";
+import { EligibilityWizard } from "../components/EligibilityWizard";
 import { useLang } from "../lib/contexts";
 import { t, SUGGESTIONS } from "../lib/i18n";
 import { getDomains, listConversations } from "../lib/api";
@@ -13,6 +14,7 @@ export default function Home() {
   const navigate = useNavigate();
   const [domains, setDomains] = useState({});
   const [recent, setRecent] = useState([]);
+  const [showElig, setShowElig] = useState(false);
   const deva = lang !== "en";
 
   useEffect(() => {
@@ -31,10 +33,16 @@ export default function Home() {
           <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground font-semibold mb-3">{t(lang, "tagline")}</div>
           <h1 className={`font-head text-4xl md:text-5xl font-light tracking-tight leading-tight ${deva ? "font-deva" : ""}`}>{t(lang, "home_greeting")}</h1>
           <p className={`text-muted-foreground mt-4 max-w-xl ${deva ? "font-deva" : ""}`}>{t(lang, "home_sub")}</p>
-          <button onClick={() => navigate("/app/chat")} data-testid="start-chat-cta"
-            className="mt-7 inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 font-medium transition-transform duration-300 hover:scale-[1.03] active:scale-95">
-            <MessageCircle className="w-4.5 h-4.5" /> {t(lang, "ask_anything")} <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <button onClick={() => navigate("/app/chat")} data-testid="start-chat-cta"
+              className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 font-medium transition-transform duration-300 hover:scale-[1.03] active:scale-95">
+              <MessageCircle className="w-4.5 h-4.5" /> {t(lang, "ask_anything")} <ArrowRight className="w-4 h-4" />
+            </button>
+            <button onClick={() => setShowElig(true)} data-testid="eligibility-cta"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/5 text-primary px-6 py-3 font-medium transition-colors duration-300 hover:bg-primary/10">
+              <ShieldCheck className="w-4.5 h-4.5" /> {lang === "hi" ? "क्या मैं पात्र हूँ?" : lang === "mr" ? "मी पात्र आहे का?" : "Am I Eligible?"}
+            </button>
+          </div>
         </div>
       </motion.div>
 
@@ -88,6 +96,7 @@ export default function Home() {
           </div>
         )}
       </section>
+      {showElig && <EligibilityWizard onClose={() => setShowElig(false)} />}
     </div>
   );
 }

@@ -1,0 +1,57 @@
+{
+  "summary": "Regression + new-feature test of VAANI 'Competition Edition'. FOUND AND FIXED A SHIP-BLOCKING CRASH: /app/chat rendered only the error boundary ('Something interrupted VAANI') because Chat.jsx declared startDemo (useCallback deps [demo.running, send, setLang]) ABOVE `const send = useCallback(...)`, causing a TDZ 'ReferenceError: Cannot access send before initialization' on every render. I moved startDemo below send (declaration order only, no functional change) and then tested everything. Backend: added /app/backend/tests/test_competition.py (13 tests) for POST /api/translate (en->hi, hi->en, default target, empty/missing validation), grounded-flag persistence + confidence band, TTS, document upload->ask->DELETE lifecycle, knowledge/status regression. Full suite now 34/34 PASSED. Frontend (Playwright, 1920x1080 + 390x844): chat streaming + confidence badge (96-100%, green, 'Verified from documents', grounded now survives reload), 5 citation cards, quick-action chips (EN + HI) sending a second grounded answer, translate button (works, ~15-20s), word-highlight TTS play/stop toggle, mic listening panel + waveform start/stop, Demo Mode banner/autopilot/stop, Am-I-Eligible wizard end-to-end (3 steps -> auto-sent eligibility question -> 100% grounded answer with 5 citations), document upload -> ask -> read-aloud -> citation cards in modal -> delete, Settings wake-word/SFX/auto-voice toggles with localStorage persistence across reload, offline banner appear/disappear + service-worker registration, Knowledge browse/filter/semantic search, History list/search/bookmarks, System Status, Hindi UI + Hindi grounded answer. Previous iteration_1 HIGH bugs (grounded flag lost, mobile composer under the dock, Enter-only history search, missing doc delete, doc-ask citations, confidence calibration) are all verified fixed. All QA data cleaned up (17 QA conversations + all uploaded docs deleted; also removed 2 leftover TEST_water_tax docs left behind by earlier manual testing; KB back to 12 docs / 24 vectors).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/translate", "issue": "Latency is 15-20s for a ~1.5KB answer (full LLM round trip, no streaming). Acceptable functionally but the frontend gives no progress feedback (see UI bug). Consider streaming or a faster/cheaper model for translation."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Chat.jsx", "issue": "SHIP-BLOCKER (fixed by me): startDemo's useCallback dependency array referenced `send` before `const send = useCallback` was initialized -> TDZ ReferenceError on every render, so the whole /app/chat route rendered only the error boundary. Nothing in Chat (streaming, quick actions, translate, TTS, demo, mic) was reachable. Fix applied: startDemo moved below send. Main agent must review/keep this ordering.", "selector": "[data-testid=\"chat-empty\"]", "priority": "CRITICAL"},
+      {"component": "Chat translate button", "issue": "No loading/pending state. POST /api/translate takes 15-20s and the button shows no spinner, is not disabled, and no skeleton appears; the app looks broken and the user can fire duplicate requests (a second click while in-flight is interpreted as the toggle-off path).", "selector": "[data-testid=\"translate-msg\"]", "priority": "MEDIUM"},
+      {"component": "Chat composer (mobile 390px)", "issue": "Still open from iteration_1: textarea rows=1 with the long placeholder wraps to 2 lines and the second line is visually clipped ('Ask about schemes, insurance, farming...'). Overlap with the mobile dock IS fixed (elementFromPoint at send/voice button centres now returns the buttons).", "selector": "[data-testid=\"chat-input\"]", "priority": "MEDIUM"},
+      {"component": "Chat quick actions", "issue": "Chips come from a static domain->questions map and are not de-duplicated against what was just asked, so after clicking 'What premium will I pay?' the identical chip is offered again as quick-action-0 on the new answer.", "selector": "[data-testid=\"quick-action-0\"]", "priority": "LOW"},
+      {"component": "Documents delete", "issue": "onClick handler `await deleteDocument(d.id)` has no try/catch: a failing delete produces an unhandled promise rejection, a false 'Deleted' toast is skipped and the user gets no error feedback.", "selector": "[data-testid=\"delete-doc-btn\"]", "priority": "LOW"},
+      {"component": "Chat voice-button (recording state)", "issue": "Testability: while recording the button carries an infinite `animate-breathe` transform animation on the button element itself, so Playwright normal clicks fail with 'element is not stable' (force=True needed). Real users are unaffected, but automated tests of stop-recording will keep flaking. Move the animation to a child/pseudo-element or use opacity/box-shadow instead of transform.", "selector": "[data-testid=\"voice-button\"]", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Chat confidence badge", "issues": ["Colour still derives from confidence while the label derives from grounded: a fully cited PMFBY follow-up rendered amber 'Confidence 52%' next to 'Verified from documents'. Grounded EN/HI PM-KISAN answers score 96-100% so the High band is now reachable, but follow-up questions can still land in the amber band while labelled verified."]},
+      {"screen": "Chat mobile (390x844)", "issues": ["Placeholder text clipped in the composer (see ui_bugs)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_competition.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "REVIEW the Chat.jsx hook-ordering fix I applied (startDemo moved after send). The feature set shipped in a state where /app/chat crashed 100% of the time — add a smoke check that [data-testid='chat-empty'] renders before handing off.",
+    "MEDIUM: Add a pending state to the Translate button (spinner + disabled while POST /api/translate is in flight, ~15-20s).",
+    "MEDIUM: Shorten/truncate the mobile chat placeholder so it does not wrap and clip at 390px.",
+    "LOW: De-duplicate quick-action chips against the question just asked.",
+    "LOW: Wrap the Documents delete handler in try/catch with an error toast.",
+    "LOW: Unify the confidence badge into one trust state so an amber percentage cannot sit next to 'Verified from documents'.",
+    "LOW: Move `animate-breathe` off the voice button element (transform animation blocks Playwright actionability checks)."
+  ],
+  "critical_code_review_comments": [
+    "Chat.jsx: a useCallback dependency array that references a `const` declared later in the same component body is a hard TDZ crash, not a lint warning (ESLint react-hooks did not flag it). Any future hook added above `send` must not reference it.",
+    "useSpeech.play() sets playingId/activeWord before awaiting speak(); if TTS fails the catch calls stop(), which is correct, but there is no user-visible error toast for a failed TTS request.",
+    "Documents.jsx delete handler lacks error handling (unhandled rejection).",
+    "demo.js runDemo calls send() without awaiting and relies on a 300ms polling waitIdle over streamingRef; it worked in all runs, but a fast-failing stream could race and skip a step.",
+    "Backend translate endpoint imports get_llm inside the function body; move it to module scope for consistency with the rest of server.py.",
+    "Still open from iteration_1 (low): blocking ChromaDB embedding/query calls run inline in async handlers (rag.retrieve / store.query / ingest.semantic_preview) — wrap in asyncio.to_thread."
+  ],
+  "updated_files": [
+    "/app/frontend/src/app/Chat.jsx",
+    "/app/backend/tests/test_competition.py"
+  ],
+  "success_rate": {"backend": "100% (34/34 pytest)", "frontend": "100% of new + regression flows pass AFTER the Chat.jsx TDZ fix (0% before it — Chat route was fully crashed)"},
+  "seed_data_creation": "Uploaded /tmp/TEST_qa_ui_doc.txt via the UI and one TEST_comp_water.txt via the API; both deleted through DELETE /api/documents/{id}. 17 QA conversations deleted. Also deleted 2 stale TEST_water_tax documents left over from earlier manual testing. Final state verified: 0 uploaded documents, 12 KB documents / 24 vectors, 10 pre-existing conversations.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "N/A — app has no authentication. /app/memory/test_credentials.md not needed.",
+  "context_for_next_testing_agent": "Run `pytest /app/backend/tests/ -v` (pytest.ini fixes -n 2 --dist loadscope) — 34/34 pass in ~62s against REACT_APP_BACKEND_URL. New file test_competition.py covers /api/translate, grounded persistence (asserts confidence >= 0.75 for the EN PM-KISAN query), TTS, and the full document upload->ask->delete lifecycle; it cleans up after itself. Frontend gotchas discovered: (1) navigate straight to /app* to skip the cinematic intro; (2) the recording voice-button needs click(force=True) because of animate-breathe; (3) translate takes up to 20s — poll for Devanagari for ~30s; (4) correct testids are knowledge-search-input / knowledge-search-btn / knowledge-doc / knowledge-result / domain-chip, conversation-item / search-result / bookmark-item / history-search-btn, language-switcher / lang-option-hi; (5) documents accumulate in ChromaDB, so always DELETE /api/documents/{id} after uploads. Remaining unfixed items are all cosmetic/low (translate spinner, mobile placeholder clipping, chip dedupe, badge colour unification).",
+  "rca_of_the_issue": "ROOT CAUSE OF THE CRASH: In Chat.jsx the `startDemo` useCallback was inserted at line ~80, above `const send = useCallback(...)` at line ~97, and its dependency array `[demo.running, send, setLang]` is evaluated during render. Reading the `const send` binding before its initializer runs throws a TDZ ReferenceError ('Cannot access send before initialization'), which the VAANI error boundary caught, so /app/chat only ever rendered 'Something interrupted VAANI'. ESLint's react-hooks rules did not detect it and the dev server compiled cleanly, so it was invisible without loading the page. Reproduced deterministically on first load; resolved by moving the startDemo declaration below send, after which every Competition Edition feature (quick actions, translate, TTS highlight, waveform, demo mode) worked."
+}

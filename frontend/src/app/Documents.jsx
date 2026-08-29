@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Upload, FileText, Loader2, X, Send, Trash2 } from "lucide-react";
+import { Upload, FileText, Loader2, X, Send, Trash2, Volume2, Square } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "../lib/contexts";
 import { t } from "../lib/i18n";
@@ -9,6 +9,7 @@ import { RichText } from "../components/RichText";
 import { ConfidenceBadge } from "../components/ConfidenceBadge";
 import { CitationCard } from "../components/CitationCard";
 import { domainMeta, DOMAIN_META } from "../lib/domains";
+import { useSpeech } from "../lib/useSpeech";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "../components/ui/select";
@@ -81,7 +82,7 @@ export default function Documents() {
                 <button onClick={() => setActive(d)} className="flex-1 rounded-full border border-border py-2 text-sm hover:bg-accent transition-colors duration-300" data-testid="ask-doc-btn">
                   {t(lang, "ask_doc")}
                 </button>
-                <button onClick={async () => { await deleteDocument(d.id); toast.success("Deleted"); refresh(); }} data-testid="delete-doc-btn"
+                <button onClick={async () => { try { await deleteDocument(d.id); toast.success("Deleted"); refresh(); } catch { toast.error("Delete failed"); } }} data-testid="delete-doc-btn"
                   className="grid place-items-center w-10 rounded-full border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-300">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -101,6 +102,7 @@ function DocAsk({ doc, lang, deva, onClose }) {
   const [answer, setAnswer] = useState("");
   const [meta, setMeta] = useState(null);
   const [busy, setBusy] = useState(false);
+  const speech = useSpeech();
 
   const ask = async () => {
     if (!q.trim() || busy) return;
@@ -131,8 +133,18 @@ function DocAsk({ doc, lang, deva, onClose }) {
         </div>
         {(answer || busy) && (
           <div className="mt-4 max-h-[45vh] overflow-y-auto">
-            {meta && <div className="mb-3"><ConfidenceBadge confidence={meta.confidence} grounded={meta.grounded ?? (meta.citations?.length > 0)} /></div>}
-            <div className="text-sm"><RichText text={answer || "…"} deva={deva} /></div>
+            {meta && (
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <ConfidenceBadge confidence={meta.confidence} grounded={meta.grounded ?? (meta.citations?.length > 0)} />
+                {!busy && answer && (
+                  <button onClick={() => speech.play(answer, "doc")} data-testid="doc-read-aloud"
+                    className="grid place-items-center w-8 h-8 rounded-full border border-border hover:bg-accent transition-colors duration-300">
+                    {speech.playingId === "doc" ? <Square className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="text-sm"><RichText text={answer || "…"} deva={deva} highlightIndex={speech.playingId === "doc" ? speech.activeWord : -1} /></div>
             {meta?.citations?.length > 0 && (
               <div className="mt-4">
                 <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-2">{t(lang, "sources")}</div>

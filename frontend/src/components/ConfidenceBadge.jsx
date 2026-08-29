@@ -11,9 +11,7 @@ export function ConfidenceBadge({ confidence, grounded }) {
   if (grounded) {
     Icon = ShieldCheck;
     label = t(lang, "grounded");
-    cls = confidence >= 0.75
-      ? "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/25"
-      : "bg-amber-500/12 text-amber-700 dark:text-amber-300 border-amber-500/25";
+    cls = "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300 border-emerald-500/25";
   } else {
     Icon = ShieldAlert;
     label = t(lang, "ungrounded");
