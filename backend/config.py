@@ -23,7 +23,9 @@ VAANI_HARDWARE = os.environ.get("VAANI_HARDWARE", "mock")    # mock | laptop | r
 LLM_PROVIDER = "gemini"
 LLM_MODEL = "gemini-3.1-pro-preview"
 STT_MODEL = "whisper-1"
-TTS_MODEL = "gpt-4o-mini-tts"
+TTS_MODEL = "tts-1-hd"
+TTS_VOICE = "nova"
+TTS_SPEED = 0.96
 
 # RAG params
 RAG_TOP_K = 5

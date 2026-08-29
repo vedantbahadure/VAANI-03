@@ -137,14 +137,14 @@ function DocAsk({ doc, lang, deva, onClose }) {
               <div className="mb-3 flex items-center justify-between gap-2">
                 <ConfidenceBadge confidence={meta.confidence} grounded={meta.grounded ?? (meta.citations?.length > 0)} />
                 {!busy && answer && (
-                  <button onClick={() => speech.play(answer, "doc")} data-testid="doc-read-aloud"
+                  <button onClick={() => speech.play(answer, "doc", lang)} data-testid="doc-read-aloud"
                     className="grid place-items-center w-8 h-8 rounded-full border border-border hover:bg-accent transition-colors duration-300">
                     {speech.playingId === "doc" ? <Square className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                   </button>
                 )}
               </div>
             )}
-            <div className="text-sm"><RichText text={answer || "…"} deva={deva} highlightIndex={speech.playingId === "doc" ? speech.activeWord : -1} /></div>
+            <div className="text-sm"><RichText text={answer || "…"} deva={deva} highlightProgress={speech.playingId === "doc" ? speech.progress : -1} /></div>
             {meta?.citations?.length > 0 && (
               <div className="mt-4">
                 <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-semibold mb-2">{t(lang, "sources")}</div>

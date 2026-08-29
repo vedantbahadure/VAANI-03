@@ -3,7 +3,7 @@ import io
 from typing import AsyncIterator, Optional
 from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
 from emergentintegrations.llm.openai import OpenAISpeechToText, OpenAITextToSpeech
-from config import EMERGENT_LLM_KEY, LLM_PROVIDER, LLM_MODEL, STT_MODEL
+from config import EMERGENT_LLM_KEY, LLM_PROVIDER, LLM_MODEL, STT_MODEL, TTS_MODEL, TTS_VOICE, TTS_SPEED
 
 
 class GeminiLLM:
@@ -40,13 +40,14 @@ class WhisperSTT:
 
 
 class OpenAITTS:
-    """OpenAI TTS via emergentintegrations (LiteLLM proxy, Emergent key)."""
+    """OpenAI TTS via emergentintegrations. Warm, natural female voice (nova) at a calm cadence."""
     def __init__(self):
         self._tts = OpenAITextToSpeech(api_key=EMERGENT_LLM_KEY)
 
-    async def synthesize(self, text: str, voice: str = "alloy") -> bytes:
+    async def synthesize(self, text: str, voice: str = TTS_VOICE, speed: float = TTS_SPEED) -> bytes:
         return await self._tts.generate_speech(
-            text=text[:4000], model="tts-1", voice=voice, response_format="mp3"
+            text=text[:4000], model=TTS_MODEL, voice=voice or TTS_VOICE,
+            speed=speed, response_format="mp3"
         )
 
 

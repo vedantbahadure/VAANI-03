@@ -54,8 +54,7 @@ export default function Landing() {
       {/* Fixed chrome */}
       <div className="fixed top-0 inset-x-0 z-40 flex items-center justify-between px-6 md:px-10 h-16">
         <div className="flex items-center gap-2.5">
-          <Orb state="idle" size={30} />
-          <span className="font-head font-medium tracking-tight text-lg">{t(lang, "app_name")}</span>
+          <img src="/vaani-logo.png" alt="VAANI" className="h-10 w-auto object-contain" />
         </div>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />

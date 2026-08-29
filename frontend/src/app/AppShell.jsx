@@ -1,7 +1,6 @@
 import React from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Home, MessageCircle, BookOpen, FileText, History, Activity, Settings, Wifi, WifiOff } from "lucide-react";
-import { Orb } from "../components/Orb";
 import { ThemeToggle, LanguageSwitcher } from "../components/Controls";
 import { useLang, useOrb, useOnline } from "../lib/contexts";
 import { t } from "../lib/i18n";
@@ -27,12 +26,8 @@ export default function AppShell() {
       {/* Desktop side dock */}
       <aside className="hidden md:flex flex-col justify-between w-[248px] shrink-0 border-r border-border p-5">
         <div>
-          <button onClick={() => navigate("/")} className="flex items-center gap-3 mb-10 group" data-testid="brand-home">
-            <Orb state={orbState} size={40} />
-            <div className="text-left">
-              <div className="font-head text-lg font-medium tracking-tight leading-none">{t(lang, "app_name")}</div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">{t(lang, "tagline")}</div>
-            </div>
+          <button onClick={() => navigate("/")} className="flex items-center mb-10 group" data-testid="brand-home">
+            <img src="/vaani-logo.png" alt="VAANI" className="h-14 w-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105" />
           </button>
           <nav className="space-y-1">
             {NAV.map((n) => (
@@ -68,9 +63,8 @@ export default function AppShell() {
         )}
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex items-center justify-between px-5 md:px-8 h-16 border-b border-border glass">
-          <div className="flex items-center gap-3 md:hidden">
-            <Orb state={orbState} size={30} />
-            <span className="font-head font-medium tracking-tight">{t(lang, "app_name")}</span>
+          <div className="flex items-center gap-2.5 md:hidden">
+            <img src="/vaani-logo.png" alt="VAANI" className="h-9 w-auto object-contain" />
           </div>
           <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-breathe" />

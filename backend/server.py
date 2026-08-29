@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from starlette.middleware.cors import CORSMiddleware
 
 from config import (CORS_ORIGINS, VAANI_MODE, SUPPORTED_LANGS, LLM_MODEL, STT_MODEL,
-                    RAG_SCORE_THRESHOLD)
+                    TTS_MODEL, RAG_SCORE_THRESHOLD)
 from errors import register_error_handlers, NotFoundError, ValidationError, UpstreamError
 from domain import Conversation, Message, Bookmark, new_id, now_iso
 import repositories as repo
@@ -44,7 +44,7 @@ async def system_status():
         "subsystems": {
             "llm": {"provider": "gemini", "model": LLM_MODEL, "status": "online"},
             "stt": {"model": STT_MODEL, "status": "online"},
-            "tts": {"model": "tts-1", "status": "online"},
+            "tts": {"model": TTS_MODEL, "voice": "nova (female)", "status": "online"},
             "vector_store": {"engine": "chromadb", "vectors": store.count(), "status": "online"},
             "database": {"engine": "sqlite", "status": "online"},
         },
@@ -164,7 +164,7 @@ async def transcribe(audio: UploadFile = File(...), language: Optional[str] = Fo
 
 class SpeakRequest(BaseModel):
     text: str
-    voice: str = "alloy"
+    voice: str = "nova"
 
 
 class TranslateRequest(BaseModel):

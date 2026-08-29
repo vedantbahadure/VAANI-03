@@ -60,8 +60,8 @@ export default function Chat() {
   }, [messages]);
 
   const playTTS = useCallback((text, msgId) => {
-    speech.play(text, msgId);
-  }, [speech]);
+    speech.play(text, msgId, lang);
+  }, [speech, lang]);
 
   useEffect(() => {
     if (speech.playingId) setOrbState("speaking");
@@ -212,7 +212,7 @@ export default function Chat() {
                         {m.role === "assistant" ? (
                           m.content ? (
                             <>
-                              <RichText text={m.content} deva={deva} highlightIndex={speech.playingId === m.id ? speech.activeWord : -1} />
+                              <RichText text={m.content} deva={deva} highlightProgress={speech.playingId === m.id ? speech.progress : -1} />
                               {translations[m.id] && (
                                 <div className="mt-3 pt-3 border-t border-border/60 text-sm text-muted-foreground">
                                   <div className="text-[10px] uppercase tracking-[0.2em] font-semibold mb-1 flex items-center gap-1"><Languages className="w-3 h-3" /> {LANGS.find((l) => l.code === translations[m.id].target)?.native}</div>
