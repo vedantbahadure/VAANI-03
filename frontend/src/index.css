@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-head: "Cabinet Grotesk", "Manrope", system-ui, sans-serif;
+  --font-body: "Manrope", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-deva: "Noto Sans Devanagari", "Manrope", sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code, .font-mono { font-family: var(--font-mono); }
+.font-head { font-family: var(--font-head); }
+.font-deva { font-family: var(--font-deva); }
+
+@layer base {
+  :root {
+    --background: 48 33% 98%;        /* #FDFCF8 warm off-white */
+    --foreground: 150 18% 8%;        /* #111815 */
+    --card: 0 0% 100%;
+    --card-foreground: 150 18% 8%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 18% 8%;
+    --primary: 150 35% 16%;          /* #1A3626 deep forest */
+    --primary-foreground: 48 33% 98%;
+    --secondary: 44 22% 93%;
+    --secondary-foreground: 150 35% 16%;
+    --muted: 44 22% 93%;             /* #F3F1EB */
+    --muted-foreground: 96 6% 43%;   /* #6B7268 */
+    --accent: 44 22% 88%;            /* #E8E4D9 */
+    --accent-foreground: 150 35% 16%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 44 22% 88%;
+    --input: 44 22% 88%;
+    --ring: 150 35% 16%;
+    --chart-1: 150 35% 30%;
+    --chart-2: 40 70% 55%;
+    --chart-3: 200 55% 45%;
+    --chart-4: 25 75% 55%;
+    --chart-5: 280 40% 55%;
+    --radius: 1rem;
+  }
+  .dark {
+    --background: 140 12% 5%;         /* #0B0E0C */
+    --foreground: 48 33% 98%;
+    --card: 150 12% 7%;              /* #111613 */
+    --card-foreground: 48 33% 98%;
+    --popover: 150 12% 7%;
+    --popover-foreground: 48 33% 98%;
+    --primary: 145 22% 87%;          /* #D6E5DB pale sage */
+    --primary-foreground: 140 12% 5%;
+    --secondary: 150 11% 11%;
+    --secondary-foreground: 48 33% 98%;
+    --muted: 150 11% 11%;            /* #1A211D */
+    --muted-foreground: 120 4% 64%;  /* #A1A8A3 */
+    --accent: 150 11% 13%;
+    --accent-foreground: 48 33% 98%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 150 11% 16%;           /* #232D27 */
+    --input: 150 11% 16%;
+    --ring: 145 22% 70%;
+    --chart-1: 145 30% 60%;
+    --chart-2: 40 70% 60%;
+    --chart-3: 200 55% 55%;
+    --chart-4: 25 75% 60%;
+    --chart-5: 280 45% 65%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+  h1, h2, h3, h4 { font-family: var(--font-head); }
+  ::selection { background: hsl(var(--primary) / 0.18); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.25); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: padding-box; }
+
+/* Glass surfaces */
+.glass {
+  background: hsl(var(--card) / 0.7);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid hsl(var(--border) / 0.6);
+}
+
+/* Orb breathing keyframes */
+@keyframes breathe { 0%,100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.06); opacity: 1; } }
+@keyframes ripple { 0% { transform: scale(.9); opacity: .7; } 100% { transform: scale(1.8); opacity: 0; } }
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+@keyframes float-y { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+@keyframes grain { 0%,100%{transform:translate(0,0)} 10%{transform:translate(-5%,-10%)} 30%{transform:translate(3%,-15%)} 50%{transform:translate(12%,9%)} 70%{transform:translate(9%,4%)} 90%{transform:translate(-1%,7%)} }
+
+.animate-breathe { animation: breathe 4s ease-in-out infinite; }
+.animate-float-y { animation: float-y 6s ease-in-out infinite; }
+.animate-spin-slow { animation: spin-slow 24s linear infinite; }
+
+.skeleton { position: relative; overflow: hidden; background: hsl(var(--muted)); }
+.skeleton::after { content:""; position:absolute; inset:0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, hsl(var(--foreground)/0.05), transparent); animation: shimmer 1.6s infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-breathe, .animate-float-y, .animate-spin-slow { animation: none !important; }
+}
+
+@layer base {
+  [data-debug-wrapper="true"] { display: contents !important; }
+}

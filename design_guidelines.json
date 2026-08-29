@@ -1,0 +1,151 @@
+{
+  "project_context": {
+    "name": "PROJECT VAANI / GENESIS",
+    "description": "A premium AI operating system for rural governance in India. Bridging citizens and government services via voice and multilingual chat. Includes a 3D cinematic landing page and a polished, highly usable functional app.",
+    "vibe": "Timeless, premium, minimal, warm, elegant, calm. Everything should breathe. Nothing should scream."
+  },
+  "design_system": {
+    "archetype": "Organic & Earthy blended with Luxury (Apple/Notion aesthetic but deeply rooted in Indian warmth)",
+    "typography": {
+      "fonts": {
+        "headings": "Cabinet Grotesk",
+        "body": "Manrope",
+        "mono": "JetBrains Mono",
+        "scripts": "Noto Sans Devanagari"
+      },
+      "hierarchy": {
+        "h1": "text-5xl sm:text-6xl tracking-tighter leading-tight font-light",
+        "h2": "text-3xl sm:text-4xl tracking-tight leading-snug font-medium",
+        "h3": "text-xl sm:text-2xl tracking-tight font-medium",
+        "body": "text-base leading-relaxed font-normal text-muted-foreground",
+        "labels": "text-xs tracking-[0.2em] uppercase font-semibold text-muted-foreground"
+      }
+    },
+    "colors": {
+      "light": {
+        "background": "#FDFCF8",
+        "foreground": "#111815",
+        "card": "#FFFFFF",
+        "card_foreground": "#111815",
+        "primary": "#1A3626",
+        "primary_foreground": "#FDFCF8",
+        "muted": "#F3F1EB",
+        "muted_foreground": "#6B7268",
+        "accent": "#E8E4D9",
+        "border": "#E8E4D9"
+      },
+      "dark": {
+        "background": "#0B0E0C",
+        "foreground": "#FDFCF8",
+        "card": "#111613",
+        "card_foreground": "#FDFCF8",
+        "primary": "#D6E5DB",
+        "primary_foreground": "#0B0E0C",
+        "muted": "#1A211D",
+        "muted_foreground": "#A1A8A3",
+        "accent": "#1A211D",
+        "border": "#232D27"
+      },
+      "orb_states": {
+        "idle": "from-white/40 to-white/10 (Soft pearl, slow breathing)",
+        "listening": "from-blue-400 to-cyan-300 (Expanding ripples, highly receptive)",
+        "thinking": "from-indigo-500 to-purple-400 (Fast swirling particles, energetic)",
+        "speaking": "from-amber-400 to-orange-300 (Audio-reactive waves, warm and human)",
+        "success": "from-emerald-400 to-green-300 (Gentle outward burst, calm resolution)",
+        "warning": "from-red-400 to-rose-300 (Sharp, pulsing edge, attention-grabbing)",
+        "offline": "from-stone-500 to-stone-400 (Static, dim, low-energy)"
+      }
+    },
+    "spacing_and_layout": {
+      "philosophy": "Generous Spacing Philosophy. Use 2-3x more spacing than typical designs. Elements must breathe.",
+      "padding": "p-6 sm:p-8 md:p-12",
+      "gap": "gap-6 sm:gap-8 lg:gap-12",
+      "radius": {
+        "card": "rounded-3xl",
+        "button": "rounded-full",
+        "input": "rounded-2xl"
+      },
+      "grids": "Use Bento grid variations with asymmetry for landing page. For app dashboard, use strict dense grids (grid-cols-1 md:grid-cols-4) but with generous internal padding."
+    },
+    "surfaces": {
+      "glassmorphism": {
+        "light": "bg-white/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/40 shadow-sm",
+        "dark": "bg-[#0B0E0C]/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/10 shadow-xl"
+      },
+      "cards": "Subtle borders (1px) with extremely soft ambient shadows. Nested radii: child components should have slightly smaller border-radius than their containers. DO NOT use completely transparent backgrounds for cards or overlays."
+    },
+    "motion_and_interactions": {
+      "transitions": "Use specific properties: transition-transform, transition-colors duration-300 ease-out. Never use transition-all.",
+      "hover": "Subtle lift (-translate-y-1) and slight shadow increase. Explicit text color changes on hover.",
+      "entrance": "Staggered fade-up (Framer Motion) for lists and chat bubbles.",
+      "scrolling": "Lenis for smooth momentum scrolling on the landing page."
+    },
+    "3d_and_visual_enhancers": {
+      "cinematic_intro": {
+        "library": "React Three Fiber + GSAP",
+        "flow": "Particle awakening -> neural network -> Indian scripts (Devanagari) -> knowledge -> Living Orb forms -> 'Hello, I'm VAANI'."
+      },
+      "living_orb": {
+        "library": "React Three Fiber (drei)",
+        "implementation": "Use MeshDistortMaterial or custom shaders for the orb. React to states by changing color, distortion speed, and scale. Include floating particles around it."
+      }
+    },
+    "components": {
+      "buttons": "Pill-shaped (rounded-full). Primary buttons use brand color. Secondary buttons use glassmorphism or soft muted backgrounds.",
+      "chat": "Bubbles should have soft rounded corners, with the sender's tail slightly sharper. Include a confidence score indicator (small pill badge) and citation cards (compact, border-l-2 accent).",
+      "navigation": "Sticky glassmorphic top nav or floating island dock at the bottom/side for the app.",
+      "icons": "lucide-react for UI icons. Must be minimal and clean. Never use AI emojis."
+    },
+    "accessibility": {
+      "contrast": "Ensure 4.5:1 ratio for text. Hover states must have higher contrast.",
+      "testing": "All interactive elements MUST include data-testid attribute (e.g., data-testid='voice-input-button').",
+      "motion": "Respect prefers-reduced-motion for the 3D and GSAP animations."
+    },
+    "image_urls": {
+      "landing_page": [
+        {
+          "url": "https://images.unsplash.com/photo-1694011772133-dc4b3ff3f24f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNDR8MHwxfHNlYXJjaHwxfHxydXJhbCUyMGluZGlhJTIwbGFuZHNjYXBlfGVufDB8fHx8MTc4Nzk4OTgzNHww&ixlib=rb-4.1.0&q=85",
+          "category": "hero/rural_landscape",
+          "description": "Man walking through rice field, representing rural India."
+        },
+        {
+          "url": "https://images.pexels.com/photos/32277759/pexels-photo-32277759.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+          "category": "users/farmer",
+          "description": "Elderly farmer smiling broadly."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1737505599162-d9932323a889?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwbmV0d29yayUyMG5vZGVzfGVufDB8fHx8MTc4Nzk4OTgzNHww&ixlib=rb-4.1.0&q=85",
+          "category": "technology/network",
+          "description": "Digital network nodes representing AI connectivity."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1693154599215-60fa82ab384e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwzfHxpbmRpYSUyMGFic3RyYWN0fGVufDB8fHx8MTc4Nzk4OTgzNHww&ixlib=rb-4.1.0&q=85",
+          "category": "abstract/india",
+          "description": "Abstract architecture representing modern India."
+        }
+      ]
+    },
+    "instructions_to_main_agent": [
+      "Set up React Three Fiber (R3F) for the cinematic landing page. Create a custom Orb component using MeshDistortMaterial.",
+      "Implement smooth scrolling using Lenis.",
+      "For the chat application, prioritize functional SaaS usability. Use Shadcn components heavily customized to match the timeless, Apple/Notion vibe.",
+      "Integrate next-themes for Light/Dark mode toggling. The cinematic intro should ideally force dark mode or have a specific theatrical lighting.",
+      "Ensure all Shadcn components (Dialog, Dropdown, Select) avoid Vercel-default looks. Use the defined glassmorphism and soft shadows.",
+      "Use Framer Motion for page transitions and chat bubble staggering.",
+      "Add data-testid attributes to all buttons, inputs, and interactive elements.",
+      "The Living Orb should be accessible throughout the app in a minimized state (e.g., bottom right) reflecting the system's voice status."
+    ],
+    "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+      "Avoid 'AI slop' aesthetic. Do not use generic centered layouts or uniform styling.",
+      "Create depth through layered design elements with z-index hierarchy.",
+      "Use glass-morphism effects with backdrop filters (12-24px blur).",
+      "You MUST NOT apply universal transition (e.g., transition: all). Always add transitions for specific interactive elements.",
+      "You MUST NOT center align the app container. Do not add .App { text-align: center; }.",
+      "Always use modern button styles (pill-shaped) with interaction animations.",
+      "NEVER use AI assistant Emoji characters (like 🤖🧠💭) for icons.",
+      "Every interaction needs micro-animations. Static = dead.",
+      "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+      "Prioritize using pre-existing components from src/components/ui. Use sonner for toasts."
+    ]
+  }
+}

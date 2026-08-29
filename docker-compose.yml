@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      - EMERGENT_LLM_KEY=${EMERGENT_LLM_KEY}
+      - VAANI_MODE=${VAANI_MODE:-showcase}
+      - VAANI_HARDWARE=${VAANI_HARDWARE:-mock}
+      - CORS_ORIGINS=*
+    volumes:
+      - vaani_data:/app/data
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+
+volumes:
+  vaani_data:

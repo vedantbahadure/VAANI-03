@@ -1,0 +1,70 @@
+{
+  "summary": "Full e2e test of VAANI (FastAPI + ChromaDB/SQLite RAG backend + React 3D frontend). Backend: created pytest suite (21 tests) covering health/system status, RAG SSE chat streaming (grounded + off-topic), Hindi answers, conversation persistence & CRUD, knowledge list/domains/semantic search, TTS, document upload + doc-ask SSE, bookmarks CRUD, hardware caps — 21/21 PASSED. Frontend: Playwright-tested landing cinematic intro (skip + auto-complete), Home, Chat streaming with citations/confidence, Home suggestion auto-send, Knowledge (list/filter/semantic search), Documents (UI upload + ask-doc modal), History (list/search/delete/bookmarks), Settings (theme/lang/mode), System Status, top-bar language switcher (Hindi end-to-end) and theme toggle — all core flows work. Found 1 HIGH trust-integrity bug (grounded flag lost after persistence -> 'No verified source' shown alongside 5 citations), 1 mobile layout overlap bug, and several minor UX/design gaps. Test data created during QA was cleaned up (KB back to 12 docs / 24 vectors).",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/conversations/{id}", "issue": "Message model (domain.py) has no `grounded` field, so persisted assistant messages return citations+confidence but no grounded flag. This is the root cause of the frontend showing 'No verified source' for verified answers after reload/navigation."},
+      {"endpoint": "DELETE /api/documents/{id}", "issue": "Endpoint does not exist. Uploaded documents can never be removed from SQLite or ChromaDB (they permanently pollute the knowledge base and domain counts). Had to delete QA uploads directly via a script."},
+      {"endpoint": "POST /api/chat/stream, GET /api/knowledge/search, POST /api/documents/{id}/ask", "issue": "Synchronous CPU-bound ChromaDB embedding/query (rag.retrieve, store.query, ingest.semantic_preview) is called directly inside async handlers, blocking the event loop. Wrap in asyncio.to_thread."},
+      {"endpoint": "POST /api/chat/stream", "issue": "Conversation + user message are persisted before the LLM stream starts; if the LLM fails, an orphan conversation with only a user message remains in history."},
+      {"endpoint": "POST /api/chat/stream (confidence)", "issue": "compute_confidence uses raw MiniLM cosine similarity, which caps low. A perfectly grounded, correctly cited PM-KISAN answer reports 0.64 (Medium/amber) and the equivalent Hindi query reports 0.24 (Low/red). The documented 'High >= 0.75' band is effectively unreachable; needs calibration/normalisation."},
+      {"endpoint": "POST /api/chat/stream (multilingual retrieval)", "issue": "Cross-lingual retrieval is weak: the English PM-KISAN query retrieved 5 chunks above threshold, the equivalent Hindi query retrieved only 1. Embeddings appear English-centric; consider a multilingual embedding model or query translation before retrieval."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "ConfidenceBadge / Chat", "issue": "TRUST-CRITICAL: assistant messages display 'No verified source' (ShieldAlert) while 5 citation cards are rendered directly beneath. Repro: send 'How much money do I get under PM-KISAN...' -> after onDone the app navigates to /app/chat/{id}, the [id] useEffect refetches the conversation, and the refetched messages have no `grounded` field (backend Message model omits it), so grounded becomes undefined. Also reproduces on every conversation opened from History. Fix: persist/return `grounded` from the backend, or derive grounded from citations.length > 0.", "selector": "[data-testid='confidence-badge']", "priority": "HIGH"},
+      {"component": "AppShell mobile dock / Chat composer", "issue": "On 390x844 the floating bottom nav (data-testid='mobile-dock', box y=766 h=62) overlaps the chat composer (mic y=767, send y=767) in the empty-chat state. document.elementFromPoint at the centre of both the mic and send buttons returns 'mobile-dock', i.e. a real user tap on the button centre hits the nav instead. Needs bottom padding on the composer/scroll container equal to the dock height.", "selector": "[data-testid='send-button'], [data-testid='voice-button']", "priority": "HIGH"},
+      {"component": "Chat composer (mobile)", "issue": "textarea rows=1 with a long placeholder wraps to 2 lines and is visually clipped ('Ask about schemes, insurance, farming...' cut off) at 390px width.", "selector": "[data-testid='chat-input']", "priority": "MEDIUM"},
+      {"component": "History search", "issue": "Search only fires on form submit (Enter). Typing does nothing, there is no submit button and no debounce, so the search appears broken to users. Works correctly when Enter is pressed (returned 3 results for 'PM-KISAN', 'No results.' for a nonsense query).", "selector": "[data-testid='history-search']", "priority": "MEDIUM"},
+      {"component": "Documents doc-ask modal", "issue": "The answer renders [1] citation markers and a confidence badge but no citation cards / sources list, unlike the Chat screen — inconsistent with the 'visible citations' trust promise even though the backend sends citations in the meta event.", "selector": "[data-testid='doc-ask-modal']", "priority": "MEDIUM"},
+      {"component": "Documents", "issue": "No way to delete an uploaded document from the UI (no delete control, no backend endpoint), so a mistaken upload is permanent and keeps skewing Knowledge/System-Status domain counts.", "selector": "[data-testid='uploaded-doc']", "priority": "MEDIUM"},
+      {"component": "History bookmarks empty state", "issue": "Empty state text is t(lang,'bookmarks') = literally 'Bookmarks', duplicating the tab label instead of an explanatory message like 'No bookmarks yet'.", "selector": "[data-testid='tab-bookmarks']", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Chat -> conversation reload", "issue": "The grounded flag is dropped on the round-trip through the DB, flipping a verified answer to 'No verified source'. Confirmed both immediately after onDone navigation and when reopening from History.", "affected_selectors": ["[data-testid='confidence-badge']", "[data-testid='citation-card']"]}
+    ],
+    "design_issues": [
+      {"screen": "Landing cinematic intro", "issues": ["Intro is not stuck (skip works, auto-complete works), but the hero only became visible ~24.6s after the intro appeared vs the documented ~16-17s — the 16s timer plus the 1s exit transition and heavy WebGL/particle startup make the wait noticeably long on first load."]},
+      {"screen": "Chat confidence badge", "issues": ["Badge colour is derived from confidence only while the label is derived from grounded, so a verified answer can render in red/amber 'low confidence' styling next to 'Verified from documents' — visually contradictory."]},
+      {"screen": "Chat (mobile 390px)", "issues": ["Composer sits behind the floating dock in the empty state.", "Placeholder text clipped.", "After sending, the user's own message bubble is pushed under the sticky top bar and is not visible without scrolling."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/conftest.py",
+    "/app/backend/tests/cleanup_test_docs.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "HIGH: Add `grounded: Optional[bool]` to the Message model + persistence (repositories/db) and return it from GET /api/conversations/{id}; OR make ConfidenceBadge fall back to `citations.length > 0`. Currently every verified, well-cited answer is labelled 'No verified source' after reload — directly undermines the product's trust promise.",
+    "HIGH: Fix mobile layout — add bottom padding (dock height + safe-area) to the Chat composer/scroll container so the mic and send buttons are not covered by [data-testid='mobile-dock'] at 390px.",
+    "MEDIUM: Make History search discoverable — add a debounced search or a visible submit button with a data-testid (currently Enter-only).",
+    "MEDIUM: Add DELETE /api/documents/{id} (remove SQLite row + ChromaDB vectors) and a delete control on uploaded document cards.",
+    "MEDIUM: Render citation cards in the doc-ask modal (backend already returns them in the meta event).",
+    "MEDIUM: Calibrate confidence — a fully grounded PM-KISAN answer scores only 0.64 (0.24 in Hindi); the 'High >= 0.75' band is unreachable with raw MiniLM cosine scores.",
+    "MEDIUM: Improve multilingual retrieval (Hindi query kept 1 chunk vs 5 for the English equivalent) — use a multilingual embedding model or translate the query before retrieval.",
+    "LOW: Wrap ChromaDB query/embedding calls in asyncio.to_thread so they don't block the FastAPI event loop.",
+    "LOW: Fix the bookmarks empty-state copy and shorten the mobile chat placeholder."
+  ],
+  "critical_code_review_comments": [
+    "domain.py Message model omits `grounded`, so the trust signal is not durable — the single highest-impact defect found.",
+    "server.py chat_stream persists the conversation and user message before the LLM stream begins, leaving orphan conversations on upstream failure.",
+    "server.py / rag.py: blocking ChromaDB embedding + query executed inline in async endpoints; use asyncio.to_thread to avoid stalling other requests during retrieval.",
+    "No DELETE endpoint for uploaded documents means the vector store and domain counts grow monotonically and cannot be corrected.",
+    "ConfidenceBadge derives colour from `confidence` and label from `grounded` independently, allowing self-contradictory badges; unify into a single trust state.",
+    "All files are well under 700 lines, layering (routers -> services -> repos/adapters) is clean, no MongoDB _id leakage, env vars used correctly on both sides, and data-testid coverage on interactive elements is excellent."
+  ],
+  "updated_files": [
+    "/app/backend/tests/conftest.py",
+    "/app/backend/tests/backend_test.py",
+    "/app/backend/tests/cleanup_test_docs.py"
+  ],
+  "success_rate": {"backend": "100% (21/21 pytest)", "frontend": "~88% (all screens and flows functional; 2 high-priority display/layout defects)"},
+  "seed_data_creation": "Uploaded two temporary .txt documents (TEST_water_tax via API, TEST_ui_upload via UI) and created 6 chat conversations. All TEST_ documents were removed from SQLite + ChromaDB via /app/backend/tests/cleanup_test_docs.py and QA conversations were deleted via the API. Verified final state: 12 documents, 24 vectors, 8 domains, 3 conversations remaining.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "N/A — app has no authentication (single-tenant kiosk). /app/memory/test_credentials.md not required and not used.",
+  "context_for_next_testing_agent": "Run `pytest /app/backend/tests/ -v` (pytest.ini already sets -n 2 --dist loadscope); all 21 tests passed in ~30s against the public URL. The SSE parser helper `parse_sse()` and `stream_chat()` in backend_test.py can be reused. If you upload documents during testing, run `python /app/backend/tests/cleanup_test_docs.py` afterwards (no DELETE endpoint exists) — anything titled TEST_* is removed and the KB returns to 12 docs / 24 vectors. For frontend: navigate directly to /app* to bypass the ~16-25s cinematic intro, or click [data-testid='skip-intro']. Retest priorities after fixes: (1) confidence badge must read 'Verified from documents' both live and after reopening a conversation from History; (2) mobile 390x844 chat composer — assert document.elementFromPoint at the centre of [data-testid='send-button'] returns the send button, not 'mobile-dock'; (3) History search behaviour; (4) doc-ask modal citations.",
+  "rca_of_the_issue": "GROUNDED FLAG LOSS: rag.retrieve() computes `grounded` and POST /api/chat/stream emits it in the SSE meta event, so the live badge is briefly correct. However `grounded` is never stored — domain.Message has only content/language/confidence/citations. In Chat.jsx onDone, `navigate('/app/chat/{id}', {replace:true})` changes the :id route param, which re-runs the `useEffect([id])` that calls getConversation(id) and replaces local state with the DB messages. Those DB messages carry citations and confidence but no `grounded`, so `grounded` becomes undefined and ConfidenceBadge renders the ShieldAlert / 'No verified source' branch while still rendering all 5 citation cards. The same happens for any conversation opened from History. Reproduced deterministically twice. Fix: persist and return `grounded` (or derive it from citations.length > 0 in ConfidenceBadge). MOBILE OVERLAP: the fixed 'mobile-dock' nav (y=766, h=62 at 390x844) shares vertical space with the chat composer (buttons at y=767) in the empty-chat state because the composer container has no dock-height bottom padding; elementFromPoint at both button centres returns 'mobile-dock'."
+}
